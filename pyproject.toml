@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "business-sim"
+version = "0.1.0"
+description = "A simulated small business that an AI operator runs through a tool interface."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Giamat13" }]
+keywords = ["simulation", "agents", "llm", "tool-use", "benchmark"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+claude = ["anthropic>=0.40"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+business-sim = "business_sim.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
