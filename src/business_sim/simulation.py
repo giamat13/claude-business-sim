@@ -37,15 +37,19 @@ class Simulation:
                 closed_days += 1
                 log.event("day_closed", report=session.report)
         finally:
+            # Write the outputs even if the operator failed partway, so the run can still be inspected.
             log.close()
+            if self.out_dir is not None:
+                self._write_outputs(closed_days)
+        return self.summary(closed_days)
 
+    def _write_outputs(self, closed_days: int) -> None:
+        assert self.out_dir is not None
         summary = self.summary(closed_days)
-        if self.out_dir is not None:
-            (self.out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-            (self.out_dir / "final_state.json").write_text(
-                json.dumps(asdict(self.world), indent=2, default=str), encoding="utf-8"
-            )
-        return summary
+        (self.out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+        (self.out_dir / "final_state.json").write_text(
+            json.dumps(asdict(self.world), indent=2, default=str), encoding="utf-8"
+        )
 
     def summary(self, days_closed: int) -> dict:
         world = self.world

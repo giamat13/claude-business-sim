@@ -11,13 +11,13 @@ pip install -e ".[dev,claude]"
 pytest
 ```
 
-The test suite runs offline. Tests that exercise the Claude operator use a fake client, so no API key is needed.
+The test suite runs offline. Tests that exercise the Claude operator talk to a local stub of the Messages API, so no API key or network access is needed.
 
 ## Ground rules
 
 - **Keep the simulation deterministic.** Any new randomness should come from a `random.Random` seeded from the world's seed and the day, the way `World.close_day` does it. A run with the same seed and the same operator decisions must produce the same history.
 - **Use integer cents for money.** Do not introduce floats into ledger amounts.
-- **Stay local.** Do not add code that makes network calls, touches real payment or email services, or sends mail to addresses outside the reserved `.example` domains. The operator should only be able to change the world through the tools in `tools.py`.
+- **Stay local.** Apart from the Claude operator's model calls, do not add code that makes network calls, touches real payment or email services, or sends mail to addresses outside the reserved `.example` domains. The operator should only be able to change the world through the tools in `tools.py`.
 - **Tool errors are data.** Expected rule violations should raise `SimError` so the operator receives a tool error. Reserve other exceptions for bugs in the simulator.
 - **Add tests with behaviour changes.** If you change economics, add a test that pins the new rule.
 

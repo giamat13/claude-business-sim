@@ -14,12 +14,19 @@ from .operators import DEFAULT_MODEL, ClaudeOperator, RuleBasedOperator
 from .simulation import Simulation
 
 
+def _positive_int(text: str) -> int:
+    value = int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="business-sim", description="Run the simulated shop.")
     commands = parser.add_subparsers(dest="command", required=True)
 
     run = commands.add_parser("run", help="Run the simulation for a number of days.")
-    run.add_argument("--days", type=int, default=30, help="Trading days to run (default: 30).")
+    run.add_argument("--days", type=_positive_int, default=30, help="Trading days to run (default: 30).")
     run.add_argument("--seed", type=int, default=1, help="Random seed for customer demand (default: 1).")
     run.add_argument(
         "--start-date",

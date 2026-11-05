@@ -11,7 +11,7 @@ import math
 import random
 from dataclasses import dataclass, field
 
-SALES_FEE_RATE = 0.029  # card processor: 2.9% of revenue...
+SALES_FEE_PER_MILLE = 29  # card processor: 2.9% of revenue (29 per 1,000)...
 SALES_FEE_PER_UNIT_CENTS = 30  # ...plus 30 cents per order (one unit = one order)
 DAILY_UTILITIES_CENTS = 1_500
 MONTHLY_RENT_CENTS = 120_000  # charged on the 1st of each month
@@ -71,6 +71,11 @@ def poisson(rng: random.Random, lam: float) -> int:
         if product <= limit:
             return count
         count += 1
+
+
+def card_fees_cents(revenue_cents: int, units: int) -> int:
+    """Card processing fees in whole cents, rounded half up, using integer arithmetic only."""
+    return (revenue_cents * SALES_FEE_PER_MILLE + 500) // 1000 + SALES_FEE_PER_UNIT_CENTS * units
 
 
 def customer_address(name: str) -> str:
@@ -394,7 +399,7 @@ class World:
     def send_email(self, to: str, subject: str, body: str) -> dict:
         if to not in self._known_addresses():
             raise SimError(
-                f"unknown recipient {to!r}: you can email suppliers and customers who have written to you"
+                f"unknown recipient {to!r}: you can email suppliers and anyone who has written to you"
             )
         if not subject.strip():
             raise SimError("subject must not be empty")
@@ -458,7 +463,7 @@ class World:
             product.stock -= units
             if units:
                 revenue = units * product.price_cents
-                fees = round(revenue * SALES_FEE_RATE) + SALES_FEE_PER_UNIT_CENTS * units
+                fees = card_fees_cents(revenue, units)
                 self._post(
                     "sale",
                     revenue,

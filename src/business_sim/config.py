@@ -75,8 +75,8 @@ def default_world(seed: int = 1, start_date: dt.date | None = None) -> World:
         suppliers=suppliers,
     )
     world.post_message(
-        sender="Juniper Business Banking",
-        address="accounts@juniper-business.example",
+        sender="Quillfield Business Bank",
+        address="accounts@quillfield-business.example",
         subject="Your business account is open",
         body=(
             "Welcome. Your business current account is open with a balance of "

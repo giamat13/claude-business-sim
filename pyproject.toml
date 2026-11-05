@@ -19,6 +19,10 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/giamat13/claude-business-sim"
+Issues = "https://github.com/giamat13/claude-business-sim/issues"
+
 [project.optional-dependencies]
 claude = ["anthropic>=0.40"]
 dev = ["pytest>=8"]

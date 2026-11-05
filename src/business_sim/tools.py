@@ -99,7 +99,7 @@ TOOL_SPECS: list[dict] = [
     ),
     _spec(
         "send_email",
-        "Send an email to a supplier, or to a customer who has written to you.",
+        "Send an email to a supplier, or to anyone who has written to you.",
         {
             "to": {"type": "string", "description": "Email address of the recipient."},
             "subject": {"type": "string"},
