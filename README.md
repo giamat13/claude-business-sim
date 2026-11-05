@@ -85,6 +85,22 @@ Each run writes to `runs/<timestamp>-<operator>-seed<seed>/`:
 
 The summary and state files are written even if a run fails partway, so you can inspect what happened. `cash_change` ignores stock on hand, so it is not an accounting profit.
 
+## Operating the shop by hand
+
+`python -m business_sim.manual` runs the same tools one command at a time, with the state kept in a JSON file. Use it to act as the operator yourself, or to let another agent or person run the shop one day at a time.
+
+```bash
+S=shop-state.json
+python -m business_sim.manual init --state $S --seed 1
+python -m business_sim.manual brief --state $S          # starts a day and prints the morning briefing
+python -m business_sim.manual call --state $S get_status
+python -m business_sim.manual call --state $S place_order '{"supplier_id": "RCS", "sku": "MUG-01", "quantity": 24}'
+python -m business_sim.manual call --state $S end_day   # closes the day; trading is refused until the next brief
+python -m business_sim.manual summary --state $S
+```
+
+`brief` starts a session and `end_day` closes it, following the same rules as `Session`. Every call is appended to `transcript.jsonl` next to the state file.
+
 ## Project layout
 
 ```
@@ -99,6 +115,8 @@ src/business_sim/
   prompts.py     the operator's daily briefing
   simulation.py  runs days in a loop and writes the summary
   cli.py         the `business-sim` command
+  manual.py      operate the shop one command at a time, with state in a JSON file
+  serialization.py  rebuilds a world from its saved JSON state
 tests/           unit and integration tests (no network or API key needed)
 ```
 
