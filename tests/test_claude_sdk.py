@@ -4,10 +4,6 @@ This checks request and response wire format only (tool_use blocks round-trip, t
 well formed). It says nothing about how a real model behaves.
 """
 
-import json
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 import pytest
 
 anthropic = pytest.importorskip("anthropic")
@@ -16,61 +12,18 @@ from business_sim.config import default_world  # noqa: E402
 from business_sim.operators import ClaudeOperator  # noqa: E402
 from business_sim.simulation import Simulation  # noqa: E402
 
-
-class _StubMessagesHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        length = int(self.headers["Content-Length"])
-        self.server.requests.append(json.loads(self.rfile.read(length)))
-        payload = json.dumps(self.server.replies.pop(0)).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(payload)))
-        self.end_headers()
-        self.wfile.write(payload)
-
-    def log_message(self, *args):  # keep test output quiet
-        pass
+from conftest import stub_message  # noqa: E402
 
 
-def _message(content, stop_reason):
-    return {
-        "id": "msg_stub",
-        "type": "message",
-        "role": "assistant",
-        "model": "stub-model",
-        "content": content,
-        "stop_reason": stop_reason,
-        "stop_sequence": None,
-        "usage": {"input_tokens": 100, "output_tokens": 20},
-    }
-
-
-@pytest.fixture
-def stub_api():
-    server = HTTPServer(("127.0.0.1", 0), _StubMessagesHandler)
-    server.requests = []
-    server.replies = []
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield server
-    server.shutdown()
-    server.server_close()
-
-
-def test_claude_operator_runs_a_day_through_the_real_sdk(stub_api, monkeypatch):
-    # Talk to localhost directly, even when the sandbox routes outbound traffic through a proxy.
-    monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
-    monkeypatch.setenv("no_proxy", "127.0.0.1,localhost")
-
+def test_claude_operator_runs_a_day_through_the_real_sdk(stub_api):
     stub_api.replies = [
-        _message(
+        stub_message(
             [
                 {"type": "text", "text": "Checking stock first."},
                 {"type": "tool_use", "id": "toolu_1", "name": "list_products", "input": {}},
-            ],
-            "tool_use",
+            ]
         ),
-        _message(
+        stub_message(
             [
                 {
                     "type": "tool_use",
@@ -79,8 +32,7 @@ def test_claude_operator_runs_a_day_through_the_real_sdk(stub_api, monkeypatch):
                     "input": {"supplier_id": "RCS", "sku": "MUG-01", "quantity": 24},
                 },
                 {"type": "tool_use", "id": "toolu_3", "name": "end_day", "input": {}},
-            ],
-            "tool_use",
+            ]
         ),
     ]
     client = anthropic.Anthropic(
